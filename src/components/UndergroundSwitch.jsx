@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 import { ArcgisScene } from "@arcgis/map-components/dist/components/arcgis-scene";
 
 function UndergroundSwitch() {
-  const arcgisScene = document.querySelector("arcgis-scene") as ArcgisScene;
-  const [underground, setUnderground] = useState<boolean>(false);
+  const arcgisScene = document.querySelector("arcgis-scene");
+  const [underground, setUnderground] = useState(false);
 
   useEffect(() => {
     if (arcgisScene) {
@@ -38,7 +38,7 @@ function UndergroundSwitch() {
         Ground: {""}
         On{" "}
         <CalciteSwitch
-          onCalciteSwitchChange={(event: any) =>
+          onCalciteSwitchChange={(event) =>
             setUnderground(event.target.checked)
           }
         ></CalciteSwitch>{" "}
