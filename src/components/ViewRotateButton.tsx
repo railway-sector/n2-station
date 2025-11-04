@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "../index.css";
 import "../App.css";
 import "@esri/calcite-components/dist/components/calcite-button";
@@ -21,7 +21,7 @@ function ViewRotateButton() {
       arcgisScene?.view.ui.add(pause, "top-right");
     });
 
-    function rotate() {
+    const rotate = () => {
       if (!arcgisScene?.view.interacting && !abort) {
         play.style.display = "none";
         pause.style.display = "block";
@@ -40,11 +40,13 @@ function ViewRotateButton() {
         play.style.display = "block";
         pause.style.display = "none";
       }
-    } // end
-    play.onclick = rotate;
-    pause.onclick = function () {
-      abort = true;
-    };
+    }; // end
+    if (play) {
+      play.onclick = rotate;
+      pause.onclick = function () {
+        abort = true;
+      };
+    }
   });
 
   return (
