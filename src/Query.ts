@@ -12,6 +12,26 @@ import type SceneLayer from "@arcgis/core/layers/SceneLayer";
 import BuildingComponentSublayer from "@arcgis/core/layers/buildingSublayers/BuildingComponentSublayer.js";
 import type BuildingSceneLayer from "@arcgis/core/layers/BuildingSceneLayer";
 
+//---------------------------------//
+//           Media query           //
+//---------------------------------//
+export async function mediaQuery(layer: any, ID: any) {
+  const query = layer.createQuery();
+  query.where = `id = ${ID}`;
+  const final = layer.queryFeatures(query).then((result: any) => {
+    const stats = result.features;
+    const data = stats.map((item: any) => {
+      return Object.assign({
+        timestamp: Number(item.attributes["TimeStamp"]),
+        path: item.attributes["Path"],
+      });
+    });
+    data.sort((a: any, b: any) => a.timestamp - b.timestamp);
+    return data;
+  });
+  return final;
+}
+
 export const construction_status = [
   "To be Constructed",
   "Under Construction",

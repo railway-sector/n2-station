@@ -12,6 +12,129 @@ import TextSymbol3DLayer from "@arcgis/core/symbols/TextSymbol3DLayer";
 import BuildingSceneLayer from "@arcgis/core/layers/BuildingSceneLayer";
 import SolidEdges3D from "@arcgis/core/symbols/edges/SolidEdges3D";
 
+const label_droneVideo = new LabelClass({
+  symbol: new LabelSymbol3D({
+    symbolLayers: [
+      new TextSymbol3DLayer({
+        material: {
+          color: [255, 255, 0],
+        },
+        size: 15,
+        halo: {
+          color: "black",
+          size: 0.5,
+        },
+        // font: {
+        //   family: 'Ubuntu Mono',
+        //   //weight: "bold"
+        // },
+      }),
+    ],
+    verticalOffset: {
+      screenLength: 20,
+      maxWorldLength: 10,
+      minWorldLength: 10,
+    },
+
+    callout: {
+      type: "line", // autocasts as new LineCallout3D()
+      color: [128, 128, 128, 0.5],
+      size: 0.2,
+      border: {
+        color: "grey",
+      },
+    },
+  }),
+  labelPlacement: "above-center",
+  labelExpressionInfo: {
+    expression: "$feature.Type",
+  },
+});
+
+export const drone_video_point_layer = new FeatureLayer({
+  portalItem: {
+    id: "6adfe17839d1465593ac3120749b3273",
+    portal: {
+      url: "https://gis.railway-sector.com/portal",
+    },
+  },
+  layerId: 2,
+  // definitionExpression: "Keyword = 'Depot'",
+  title: "Drone Video",
+  labelingInfo: [label_droneVideo],
+  outFields: ["*"],
+  popupEnabled: false,
+  elevationInfo: {
+    mode: "relative-to-scene",
+  },
+});
+// drone_video_point_layer.listMode = "hide";
+
+const label_droneImage = new LabelClass({
+  symbol: new LabelSymbol3D({
+    symbolLayers: [
+      new TextSymbol3DLayer({
+        material: {
+          color: [255, 255, 0],
+        },
+        size: 15,
+        halo: {
+          color: "black",
+          size: 0.5,
+        },
+        // font: {
+        //   family: 'Ubuntu Mono',
+        //   //weight: "bold"
+        // },
+      }),
+    ],
+    verticalOffset: {
+      screenLength: 30,
+      maxWorldLength: 20,
+      minWorldLength: 10,
+    },
+
+    callout: {
+      type: "line", // autocasts as new LineCallout3D()
+      color: [128, 128, 128, 0.5],
+      size: 0.2,
+      border: {
+        color: "grey",
+      },
+    },
+  }),
+  labelPlacement: "above-center",
+  labelExpressionInfo: {
+    expression: "$feature.Type",
+  },
+});
+
+export const drone_image_point_layer = new FeatureLayer({
+  portalItem: {
+    id: "6adfe17839d1465593ac3120749b3273",
+    portal: {
+      url: "https://gis.railway-sector.com/portal",
+    },
+  },
+  layerId: 1,
+  elevationInfo: {
+    mode: "relative-to-scene",
+  },
+  // definitionExpression: "Keyword = 'Depot'",
+  title: "Drone Image",
+  labelingInfo: [label_droneImage],
+  outFields: ["*"],
+  popupEnabled: false,
+});
+// drone_image_point_layer.listMode = "hide";
+
+export const droneImageVideoGroupLayer = new GroupLayer({
+  title: "Drone Image & Video",
+  visible: true,
+  visibilityMode: "independent",
+  layers: [drone_video_point_layer, drone_image_point_layer],
+});
+
 /* Standalone table for Dates */
 export const dateTable = new FeatureLayer({
   portalItem: {
