@@ -17,15 +17,7 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import am5themes_Responsive from "@amcharts/amcharts5/themes/Responsive";
-import {
-  chartDataStackColumns,
-  chartRenderer,
-  queryDefinitionExpression,
-  queryExpression,
-  resetAllLayers,
-  thousands_separators,
-  zoomToLayer,
-} from "../Query";
+import { thousands_separators, zoomToLayer } from "../Query";
 import "@esri/calcite-components/components/calcite-button";
 import SubLayerView from "@arcgis/core/views/layers/BuildingComponentSublayerView";
 import { ArcgisScene } from "@arcgis/map-components/dist/components/arcgis-scene";
@@ -37,6 +29,9 @@ import {
   status_field,
   structureTypes,
 } from "../uniqueValues";
+import { chartDataStackColumns } from "../ChartDataGenerator";
+import { queryDefinitionExpression, queryExpression } from "../QueryExpression";
+import { chartRenderer, resetAllLayers } from "../ChartRenderer";
 
 // Dispose function
 function maybeDisposeRoot(divId: any) {
@@ -64,12 +59,14 @@ const Chart = () => {
   const chartID = "station-bar";
 
   useEffect(() => {
+    const qe = queryExpression({
+      q1Value: stationNamesArray.find((item: any) => item.name === stations)
+        ?.value,
+      q1Field: stationName_field,
+    });
+
     queryDefinitionExpression({
-      queryExpression: queryExpression({
-        q1Value: stationNamesArray.find((item: any) => item.name === stations)
-          ?.value,
-        q1Field: stationName_field,
-      }),
+      queryExpression: qe,
       featureLayer: [
         stFoundationLayer,
         stColumnLayer,
@@ -81,9 +78,7 @@ const Chart = () => {
     });
 
     chartDataStackColumns({
-      q1Value: stationNamesArray.find((item: any) => item.name === stations)
-        ?.value,
-      q1Field: stationName_field,
+      qChart: qe,
       chartCategoryTypes: structureTypes,
       chartCategoryField: undefined,
       chartCategoryValueType: "string", //
@@ -194,6 +189,7 @@ const Chart = () => {
       q1Field: stationName_field,
       statusTypename: ["Completed", "To be Constructed", "Under Construction"], //["Completed", "To be Constructed", "Under Construction"],
       statusStatename: ["comp", "incomp", "ongoing"], //["comp", "incomp", "ongoing"],
+      statusStateValue: [4, 1, 2],
       statusField: status_field,
       seriesStatusColor: chart_colors,
       strokeColor: chartBorderLineColor,
