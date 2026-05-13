@@ -13,6 +13,15 @@ export type StatusStateType = "comp" | "incomp" | "ongoing" | "delayed";
 export type LayerNameType = "utility" | "viaduct" | "others";
 export type TypeFieldType = "number" | "string";
 
+export const statusLabels = ["incomp", "ongoing", "delayed", "comp"];
+export const statusValues = [1, 2, 3, 4];
+export const statusArray = statusLabels.map((status: any, index: any) => {
+  return Object.assign({
+    status: status,
+    value: statusValues[index],
+  });
+});
+
 // Media parameters
 export const image_scales = [1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4];
 export const img_size = 280;

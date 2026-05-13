@@ -10,6 +10,7 @@ import {
   wallsLayer,
   exteriorShellLayer,
   sublayersAll,
+  queryc,
 } from "../layers";
 import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
 
@@ -27,10 +28,11 @@ import {
   stationName_field,
   stationNamesArray,
   status_field,
+  statusArray,
   structureTypes,
 } from "../uniqueValues";
 import { chartDataStackColumns } from "../ChartDataGenerator";
-import { queryDefinitionExpression, queryExpression } from "../QueryExpression";
+import { queryDefinitionExpression } from "../QueryExpression";
 import { chartRenderer, resetAllLayers } from "../ChartRenderer";
 
 // Dispose function
@@ -59,14 +61,18 @@ const Chart = () => {
   const chartID = "station-bar";
 
   useEffect(() => {
-    const qe = queryExpression({
-      q1Value: stationNamesArray.find((item: any) => item.name === stations)
-        ?.value,
-      q1Field: stationName_field,
-    });
+    queryc.qValues = [
+      stationNamesArray.find((item: any) => item.name === stations)?.value,
+    ];
+    queryc.qFields = [stationName_field];
+    // const qe = queryExpression({
+    //   q1Value: stationNamesArray.find((item: any) => item.name === stations)
+    //     ?.value,
+    //   q1Field: stationName_field,
+    // });
 
     queryDefinitionExpression({
-      queryExpression: qe,
+      queryExpression: queryc.queryExpression(),
       featureLayer: [
         stFoundationLayer,
         stColumnLayer,
@@ -78,7 +84,7 @@ const Chart = () => {
     });
 
     chartDataStackColumns({
-      qChart: qe,
+      qChart: queryc.queryExpression(),
       chartCategoryTypes: structureTypes,
       chartCategoryField: undefined,
       chartCategoryValueType: "string", //
@@ -189,7 +195,7 @@ const Chart = () => {
       q1Field: stationName_field,
       statusTypename: ["Completed", "To be Constructed", "Under Construction"], //["Completed", "To be Constructed", "Under Construction"],
       statusStatename: ["comp", "incomp", "ongoing"], //["comp", "incomp", "ongoing"],
-      statusStateValue: [4, 1, 2],
+      statusArray: statusArray,
       statusField: status_field,
       seriesStatusColor: chart_colors,
       strokeColor: chartBorderLineColor,

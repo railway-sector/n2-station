@@ -11,6 +11,31 @@ import LabelSymbol3D from "@arcgis/core/symbols/LabelSymbol3D";
 import TextSymbol3DLayer from "@arcgis/core/symbols/TextSymbol3DLayer";
 import BuildingSceneLayer from "@arcgis/core/layers/BuildingSceneLayer";
 import SolidEdges3D from "@arcgis/core/symbols/edges/SolidEdges3D";
+import QueryExpressionLayers from "query-layers-expression";
+
+export const queryc = new QueryExpressionLayers(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  "string",
+  0,
+  undefined,
+  undefined,
+  undefined,
+);
+
+export const queryc2 = new QueryExpressionLayers(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  "string",
+  0,
+  undefined,
+  undefined,
+  undefined,
+);
 
 const label_droneVideo = new LabelClass({
   symbol: new LabelSymbol3D({
