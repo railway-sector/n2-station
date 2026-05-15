@@ -26,6 +26,7 @@ export default function DroneVideoComponent() {
   // Reset video when played before:
   useEffect(() => {
     video1 && video1.load();
+    video2 && video2.load();
     video1 ? (video1.currentTime = 0) : null;
     video2 ? (video2.currentTime = 0) : null;
   }, [mediasrcpaths]);
