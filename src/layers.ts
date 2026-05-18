@@ -90,7 +90,7 @@ export const drone_video_point_layer = new FeatureLayer({
   outFields: ["*"],
   popupEnabled: false,
   elevationInfo: {
-    mode: "relative-to-scene",
+    mode: "relative-to-ground",
   },
 });
 // drone_video_point_layer.listMode = "hide";
@@ -114,9 +114,9 @@ const label_droneImage = new LabelClass({
       }),
     ],
     verticalOffset: {
-      screenLength: 30,
-      maxWorldLength: 20,
-      minWorldLength: 10,
+      screenLength: 60,
+      maxWorldLength: 40,
+      minWorldLength: 40,
     },
 
     callout: {
@@ -143,7 +143,7 @@ export const drone_image_point_layer = new FeatureLayer({
   },
   layerId: 1,
   elevationInfo: {
-    mode: "relative-to-scene",
+    mode: "relative-to-ground",
   },
   // definitionExpression: "Keyword = 'Depot'",
   title: "Drone Image",
