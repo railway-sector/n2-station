@@ -84,7 +84,7 @@ export const drone_video_point_layer = new FeatureLayer({
     },
   },
   layerId: 2,
-  definitionExpression: "Query = 'depot' OR Query = 'station'",
+  // definitionExpression: "Query = 'depot' OR Query = 'station'",
   title: "Drone Video",
   labelingInfo: [label_droneVideo],
   outFields: ["*"],
@@ -145,7 +145,7 @@ export const drone_image_point_layer = new FeatureLayer({
   elevationInfo: {
     mode: "relative-to-ground",
   },
-  definitionExpression: "Query = 'depot' OR Query = 'station'",
+  // definitionExpression: "Query = 'depot' OR Query = 'station'",
   title: "Drone Image",
   labelingInfo: [label_droneImage],
   outFields: ["*"],
