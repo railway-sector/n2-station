@@ -11,7 +11,6 @@ import {
   exteriorShellLayer,
   sublayersAll,
   queryc,
-  sublayers_each,
 } from "../layers";
 import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
 
@@ -84,11 +83,13 @@ const Chart = () => {
       ],
     });
 
+    const sublayersArray = sublayersAll.map((item: any) => item.layer);
+
     chartDataStackColumns({
       qChart: queryc.queryExpression(),
       chartCategoryTypes: structureTypes,
       chartCategoryTypeField: undefined,
-      layers: sublayers_each,
+      layers: sublayersArray,
       statusState: [1, 2, 3, 4],
       statusField: status_field,
     }).then((response: any) => {
