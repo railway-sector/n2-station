@@ -11,6 +11,7 @@ import {
   exteriorShellLayer,
   sublayersAll,
   queryc,
+  sublayers_each,
 } from "../layers";
 import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
 
@@ -31,9 +32,9 @@ import {
   statusArray,
   structureTypes,
 } from "../uniqueValues";
-import { chartDataStackColumns } from "../ChartDataGenerator";
 import { queryDefinitionExpression } from "../QueryExpression";
 import { chartRenderer, resetAllLayers } from "../ChartRenderer";
+import { chartDataStackColumns } from "../ChartDataGenerator";
 
 // Dispose function
 function maybeDisposeRoot(divId: any) {
@@ -86,16 +87,8 @@ const Chart = () => {
     chartDataStackColumns({
       qChart: queryc.queryExpression(),
       chartCategoryTypes: structureTypes,
-      chartCategoryField: undefined,
-      chartCategoryValueType: "string", //
-      layers: [
-        stFoundationLayer,
-        stColumnLayer,
-        stFramingLayer,
-        floorsLayer,
-        wallsLayer,
-        columnsLayer,
-      ],
+      chartCategoryTypeField: undefined,
+      layers: sublayers_each,
       statusState: [1, 2, 3, 4],
       statusField: status_field,
     }).then((response: any) => {

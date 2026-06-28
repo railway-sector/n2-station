@@ -467,6 +467,8 @@ const renderer = new UniqueValueRenderer({
 //   });
 // }
 
+export const sublayers_each: any = [];
+
 buildingLayer.when(() => {
   buildingLayer.allSublayers.forEach((layer: any) => {
     switch (layer.modelName) {
@@ -486,6 +488,7 @@ buildingLayer.when(() => {
           name: layer.modelName,
           layer: layer,
         });
+        sublayers_each.push(layer);
         //excludedLayers.push(layer);
         break;
 
@@ -497,6 +500,7 @@ buildingLayer.when(() => {
           name: layer.modelName,
           layer: layer,
         });
+        sublayers_each.push(layer);
         //excludedLayers
         break;
 
@@ -508,6 +512,7 @@ buildingLayer.when(() => {
           name: layer.modelName,
           layer: layer,
         });
+        sublayers_each.push(layer);
         break;
 
       case "StructuralFraming":
@@ -518,6 +523,7 @@ buildingLayer.when(() => {
           name: layer.modelName,
           layer: layer,
         });
+        sublayers_each.push(layer);
         break;
 
       case "StructuralColumns":
@@ -528,6 +534,7 @@ buildingLayer.when(() => {
           name: layer.modelName,
           layer: layer,
         });
+        sublayers_each.push(layer);
         break;
 
       case "StructuralFoundation":
@@ -538,6 +545,7 @@ buildingLayer.when(() => {
           name: layer.modelName,
           layer: layer,
         });
+        sublayers_each.push(layer);
         break;
 
       default:
