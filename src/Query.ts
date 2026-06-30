@@ -94,7 +94,9 @@ export async function defineActions(event: any) {
       open: true,
     };
   }
-  item.title === "Chainage" || item.title === "Viaduct"
+  item.title === "Chainage" ||
+  item.title === "Viaduct" ||
+  item.title === "Exterior Shell"
     ? (item.visible = false)
     : (item.visible = true);
 }

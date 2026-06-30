@@ -36,6 +36,7 @@ function MapDisplay() {
     updateMediatimestamp,
   } = use(MyContext);
   const arcgisScene = document.querySelector("arcgis-scene");
+  const [_mapView, setMapView] = useState<any>();
 
   arcgisScene?.viewOnReady(() => {
     arcgisScene?.map?.add(prowLayer);
@@ -110,6 +111,9 @@ function MapDisplay() {
       viewingMode="local"
       zoom={18}
       center="120.7704670, 14.9023622"
+      onarcgisViewReadyChange={(event: any) => {
+        setMapView(event.target.id);
+      }}
     >
       {/* ---------- Media Container ---------- */}
       <div
