@@ -1,5 +1,43 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
+import type BuildingComponentSublayer from "@arcgis/core/layers/buildingSublayers/BuildingComponentSublayer";
 import { dateTable } from "./layers";
+import type BuildingSceneLayer from "@arcgis/core/layers/BuildingSceneLayer";
+import type SceneLayer from "@arcgis/core/layers/SceneLayer";
+import type FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+
+interface layersRevitVisibilityType {
+  layers:
+    | [
+        BuildingComponentSublayer?,
+        BuildingComponentSublayer?,
+        BuildingComponentSublayer?,
+        BuildingComponentSublayer?,
+        BuildingComponentSublayer?,
+        BuildingComponentSublayer?,
+        BuildingSceneLayer?,
+        SceneLayer?,
+        FeatureLayer?,
+      ]
+    | any;
+  qExpression?: any;
+}
+
+export const resetAllLayers = ({
+  layers,
+  qExpression,
+}: layersRevitVisibilityType) => {
+  layers.map((layer: any) => {
+    if (layer) {
+      if (qExpression) {
+        layer.layer.definitionExpression = qExpression;
+        layer.layer.visible = true;
+      } else {
+        layer.layer.definitionExpression = "1=1";
+        layer.layer.visible = true;
+      }
+    }
+  });
+};
 
 //---------------------------------//
 //           Media query           //

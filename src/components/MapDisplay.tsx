@@ -19,7 +19,7 @@ import {
 import ViewRotateButton from "./ViewRotateButton";
 import { use, useState } from "react";
 import { MyContext } from "../contexts/MyContext";
-import { mediaQuery } from "../Query";
+import { mediaQuery } from "../query";
 import DroneImageComponent from "./DroneImageComponent";
 import DroneVideoComponent from "./DroneVideoComponent";
 import { image_scales } from "../uniqueValues";
