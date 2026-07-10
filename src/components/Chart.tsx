@@ -39,15 +39,18 @@ const Chart = () => {
   const [sublayerViewFilter, setSublayerViewFilter] = useState<
     SubLayerView | any
   >();
-  const highlightedSublayerView = useRef<any>(undefined);
   const [resetButtonClicked, setResetButtonClicked] = useState<boolean>(false);
   const chartID = "station-bar";
+
+  const sublayersArray = sublayersAll.map((item: any) => item.layer);
 
   const { data } = useQuery<any>({
     queryKey: [structureTypes, stations],
     queryFn: async () => {
-      const sublayersArray = sublayersAll.map((item: any) => item.layer);
+      //--- Reset queryc
+      resetQuerc(queryc);
 
+      //--- Define query
       queryc.qValues = [
         stationNamesArray.find((item: any) => item.name === stations)?.value,
       ];
@@ -163,7 +166,6 @@ const Chart = () => {
       chartPaddingRightIconLabel,
       legend,
       setChartPanelwidth,
-      highlightedSublayerView, // no higlight
     );
     crender.chartRendererColumn();
 
@@ -175,16 +177,17 @@ const Chart = () => {
   });
 
   useEffect(() => {
-    highlightedSublayerView.current && highlightedSublayerView.current.remove();
-
     if (sublayerViewFilter) {
       sublayerViewFilter.filter = new FeatureFilter({
         where: undefined,
       });
-      resetQuerc(queryc);
-      resetAllLayers({ layers: sublayersAll });
+
+      resetAllLayers({
+        layers: sublayersAll,
+        qExpression: `${stationName_field} = ${queryc.qValues[0]}`,
+      });
     }
-  }, [resetButtonClicked]);
+  }, [resetButtonClicked, stations]);
 
   const primaryLabelColor = "#9ca3af";
   const valueLabelColor = "#d1d5db";
