@@ -9,37 +9,26 @@ import "@arcgis/map-components/components/arcgis-basemap-gallery";
 import "@arcgis/map-components/components/arcgis-layer-list";
 import "@arcgis/map-components/components/arcgis-legend";
 import "@arcgis/map-components/components/arcgis-direct-line-measurement-3d";
-import { defineActions } from "../query";
-import { buildingLayer } from "../layers";
+import { defineActions } from "../uniqueValues";
 
 function ActionPanel() {
-  const [activeWidget, setActiveWidget] = useState<any>(null);
-  const [nextWidget, setNextWidget] = useState<any>(null);
+  const shellPanel: any = document.getElementById("left-shell-panel");
 
+  //--- Widget (Line Measurement)
   const directLineMeasure = document.querySelector(
     "arcgis-direct-line-measurement-3d",
   );
 
-  const arcgisBuildingExplorer = document.querySelector(
-    "arcgis-building-explorer",
-  );
+  //--- Define active & next widget states
+  const [activeWidget, setActiveWidget] = useState(null);
+  const [nextWidget, setNextWidget] = useState(null);
 
-  const shellPanel: any = document.getElementById("left-shell-panel");
-  const [buildingLayerLoaded, setLotLayerLoaded] = useState<any>(null);
-
-  useEffect(() => {
-    buildingLayer.load().then(() => {
-      setLotLayerLoaded(buildingLayer.loadStatus);
-    });
-  });
-
-  useEffect(() => {
-    if (buildingLayerLoaded === "loaded") {
-      if (arcgisBuildingExplorer) {
-        arcgisBuildingExplorer.layers = [buildingLayer];
-      }
-    }
-  });
+  //--- Click action handler function for active & next widget
+  const handleActionClick = (event: any) => {
+    const id = event.target.id;
+    setNextWidget(id);
+    setActiveWidget(nextWidget === activeWidget ? null : nextWidget);
+  };
 
   useEffect(() => {
     if (activeWidget) {
@@ -49,9 +38,7 @@ function ActionPanel() {
       actionActiveWidget.hidden = true;
       shellPanel.collapsed = true;
 
-      directLineMeasure
-        ? directLineMeasure.clear()
-        : console.log("Line measure is cleared");
+      directLineMeasure && directLineMeasure.clear();
     }
 
     if (nextWidget !== activeWidget) {
@@ -70,6 +57,7 @@ function ActionPanel() {
         id="left-shell-panel"
         displayMode="dock"
         collapsed
+        style={{ "--calcite-shell-panel-background-color": "#2b2b2b" }}
       >
         <calcite-action-bar
           slot="action-bar"
@@ -86,11 +74,7 @@ function ActionPanel() {
             icon="layers"
             text="layers"
             id="layers"
-            //textEnabled={true}
-            onClick={(event: any) => {
-              setNextWidget(event.target.id);
-              setActiveWidget(nextWidget === activeWidget ? null : nextWidget);
-            }}
+            onClick={handleActionClick}
           ></calcite-action>
 
           <calcite-action
@@ -98,10 +82,7 @@ function ActionPanel() {
             icon="basemap"
             text="basemaps"
             id="basemaps"
-            onClick={(event: any) => {
-              setNextWidget(event.target.id);
-              setActiveWidget(nextWidget === activeWidget ? null : nextWidget);
-            }}
+            onClick={handleActionClick}
           ></calcite-action>
 
           <calcite-action
@@ -109,10 +90,7 @@ function ActionPanel() {
             icon="organization"
             text="Building Explorer"
             id="buildingexplorer"
-            onClick={(event: any) => {
-              setNextWidget(event.target.id);
-              setActiveWidget(nextWidget === activeWidget ? null : nextWidget);
-            }}
+            onClick={handleActionClick}
           ></calcite-action>
 
           <calcite-action
@@ -120,10 +98,7 @@ function ActionPanel() {
             icon="measure-line"
             text="Line Measurement"
             id="directline-measure"
-            onClick={(event: any) => {
-              setNextWidget(event.target.id);
-              setActiveWidget(nextWidget === activeWidget ? null : nextWidget);
-            }}
+            onClick={handleActionClick}
           ></calcite-action>
 
           <calcite-action
@@ -131,10 +106,7 @@ function ActionPanel() {
             icon="information"
             text="Information"
             id="information"
-            onClick={(event: any) => {
-              setNextWidget(event.target.id);
-              setActiveWidget(nextWidget === activeWidget ? null : nextWidget);
-            }}
+            onClick={handleActionClick}
           ></calcite-action>
         </calcite-action-bar>
 
@@ -168,12 +140,11 @@ function ActionPanel() {
           <arcgis-direct-line-measurement-3d
             id="directLineMeasurementAnalysisButton"
             referenceElement="arcgis-scene"
-            // onarcgisPropertyChange={(event) => console.log(event.target.id)}
           ></arcgis-direct-line-measurement-3d>
         </calcite-panel>
 
         <calcite-panel heading="Description" data-panel-id="information" hidden>
-          {nextWidget === "information" ? (
+          {nextWidget === "information" && (
             <div style={{ paddingLeft: "20px" }}>
               This smart map shows the construction progress on structural
               components of station buildings:
@@ -196,8 +167,6 @@ function ActionPanel() {
                 </li>
               </div>
             </div>
-          ) : (
-            <div className="informationDiv" hidden></div>
           )}
         </calcite-panel>
       </calcite-shell-panel>

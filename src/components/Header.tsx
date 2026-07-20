@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
 import { dateUpdate } from "../query";
 import StationSegmentedList from "./StationSegmentedList";
+import { useQuery } from "@tanstack/react-query";
 
 function Header() {
-  const [asOfDate, setAsOfDate] = useState(null);
-  useEffect(() => {
-    dateUpdate().then((response) => {
-      setAsOfDate(response);
-    });
-  }, []);
+  const { data } = useQuery<any>({
+    queryKey: ["As_Of_Date"],
+    queryFn: () => dateUpdate("Station Structures"),
+    staleTime: Infinity,
+  });
+  const asofdate = data ?? "";
 
   return (
     <>
@@ -55,7 +55,7 @@ function Header() {
             marginLeft: "auto",
           }}
         >
-          {!asOfDate ? "" : "As of " + asOfDate}
+          {!asofdate ? "" : "As of " + asofdate}
         </div>
 
         {/* Segmented List component */}

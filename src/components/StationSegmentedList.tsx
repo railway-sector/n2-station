@@ -1,36 +1,32 @@
-import { useState, use } from "react";
+import { use } from "react";
 import "../index.css";
 import "@esri/calcite-components/components/calcite-segmented-control";
 import "@esri/calcite-components/components/calcite-segmented-control-item";
 import { MyContext } from "../contexts/MyContext";
-import { station_names } from "../uniqueValues";
+import { station_names_q } from "../uniqueValues";
 
 export default function StationSegmentedList() {
-  const { updateStations } = use(MyContext);
-  const [stationSelected, setStationSelected] = useState<string>(
-    station_names[0],
-  );
+  const { updateStations, stations } = use(MyContext);
 
   return (
     <>
       <calcite-segmented-control
         oncalciteSegmentedControlChange={(event: any) => {
-          setStationSelected(event.target.selectedItem.id);
           updateStations(event.target.selectedItem.id);
         }}
         scale="m"
         width="full"
       >
-        {stationSelected &&
-          station_names.map((station: any, index: any) => {
+        {stations &&
+          station_names_q.map((f: any, index: any) => {
             return (
               <calcite-segmented-control-item
-                {...(stationSelected === station ? { checked: true } : {})}
+                {...(stations === f.name ? { checked: true } : {})}
                 key={index}
-                value={station}
-                id={station}
+                value={f.name}
+                id={f.name}
               >
-                {station}
+                {f.name}
               </calcite-segmented-control-item>
             );
           })}

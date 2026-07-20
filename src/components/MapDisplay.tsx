@@ -10,40 +10,42 @@ import "@arcgis/map-components/components/arcgis-compass";
 import {
   alignmentGroupLayer,
   buildingLayer,
-  drone_image_point_layer,
-  drone_video_point_layer,
   droneImageVideoGroupLayer,
+  droneLayers,
   prowLayer,
   stationLayer,
 } from "../layers";
-import ViewRotateButton from "./ViewRotateButton";
 import { use, useState } from "react";
 import { MyContext } from "../contexts/MyContext";
-import { mediaQuery } from "../query";
+import { addLayersToMap, updateMediaInfo } from "../query";
 import DroneImageComponent from "./DroneImageComponent";
 import DroneVideoComponent from "./DroneVideoComponent";
 import { image_scales } from "../uniqueValues";
+import ViewRotateButton from "./ViewRotateButton";
 
 function MapDisplay() {
   const {
-    imageopen,
+    mediaopen,
     mediatype,
-    mediaSelectedscale,
-    updateImageOpen,
+    mediascale,
+    updateMediaopen,
     updateMediatype,
-    updateMediasrcpaths,
-    updateMediaSelectedscale,
+    updateMediapaths,
+    updateMediascale,
     updateMediatimestamp,
   } = use(MyContext);
+
   const arcgisScene = document.querySelector("arcgis-scene");
   const [_mapView, setMapView] = useState<any>();
 
   arcgisScene?.viewOnReady(() => {
-    arcgisScene?.map?.add(prowLayer);
-    arcgisScene?.map?.add(buildingLayer);
-    arcgisScene?.map?.add(alignmentGroupLayer);
-    arcgisScene?.map?.add(stationLayer);
-    arcgisScene?.map?.add(droneImageVideoGroupLayer);
+    addLayersToMap(arcgisScene?.map, [
+      prowLayer,
+      buildingLayer,
+      alignmentGroupLayer,
+      stationLayer,
+      droneImageVideoGroupLayer,
+    ]);
 
     arcgisScene.view.environment.atmosphereEnabled = false;
     arcgisScene.view.environment.starsEnabled = false;
@@ -54,53 +56,45 @@ function MapDisplay() {
     }
   });
 
-  // Drone Image configuration:
-  const [imageAlign, setImageAlign] = useState<string>("horizontal");
+  //------------------------------------//
+  //     Drone Layers configuration     //
+  //------------------------------------//
+  const [align, setAlign] = useState<string>("Level");
 
-  arcgisScene?.view.on("click", (event: any) => {
-    arcgisScene?.view.hitTest(event).then(async (response: any) => {
-      const result = response.results[0];
+  arcgisScene?.view.on("click", async (event: any) => {
+    const response = await arcgisScene?.view.hitTest(event);
+    const result: any = response.results[0];
+    const layer_title = result?.graphic?.layer?.title;
 
-      if (result) {
-        const layer_title = result?.graphic?.layer?.title;
+    if (!layer_title) return;
 
-        if (layer_title === "Drone Video" || layer_title === "Drone Image") {
-          updateImageOpen(imageopen === false ? true : false);
-          const attributes = result.graphic.attributes;
-          updateMediatype(attributes["Type"]);
-          const ID = attributes["id"];
+    if (["Drone Video", "Drone Image"].includes(layer_title)) {
+      const attributes = result.graphic.attributes;
 
-          if (layer_title === "Drone Image") {
-            mediaQuery(drone_image_point_layer, ID).then((item) => {
-              if (item.length === 1) {
-                updateMediasrcpaths([item[0].path, ""]);
-                updateMediatimestamp([item[0].timestamp, ""]);
-              } else {
-                updateMediasrcpaths([item[0].path, item[1].path]);
-                updateMediatimestamp([item[0].timestamp, item[1].timestamp]);
-              }
-            });
-          } else if (layer_title === "Drone Video") {
-            updateMediasrcpaths([attributes["Path"], attributes["Path"]]);
-            mediaQuery(drone_video_point_layer, ID).then((item) => {
-              if (item.length === 1) {
-                updateMediasrcpaths([item[0].path, ""]);
-                updateMediatimestamp([item[0].timestamp, ""]);
-              } else {
-                updateMediasrcpaths([item[0].path, item[1].path]);
-                updateMediatimestamp([item[0].timestamp, item[1].timestamp]);
-              }
-            });
-          }
-        }
-      } else {
-        console.log("Clicked on empty space");
-      }
-    });
+      //--- Update boolean: media is opened? [controls display]
+      updateMediaopen(!mediaopen);
+
+      //--- Update media type clicked: image or video
+      updateMediatype(attributes["Type"]);
+
+      //--- Compile media info clicked
+      updateMediaInfo({
+        mediaLayer: droneLayers[attributes["Type"]],
+        id: attributes["id"],
+        srcpath: updateMediapaths,
+        timestamp: updateMediatimestamp,
+      });
+    }
   });
 
   const handleScaleChange = (event: any) => {
-    updateMediaSelectedscale(event.target.selectedItem.id);
+    updateMediascale(event.target.selectedItem.id);
+  };
+
+  //--- Helper function to choose image or video Component
+  const mediaComponents: Record<string, React.ReactNode> = {
+    image: <DroneImageComponent />,
+    video: <DroneVideoComponent />,
   };
 
   return (
@@ -118,7 +112,7 @@ function MapDisplay() {
       {/* ---------- Media Container ---------- */}
       <div
         style={{
-          display: imageopen === true ? "block" : "none",
+          display: mediaopen === true ? "block" : "none",
         }}
       >
         {/* Close Button */}
@@ -129,7 +123,7 @@ function MapDisplay() {
             label="Close button"
             appearance="solid"
             onClick={() => {
-              (updateImageOpen(false), updateMediasrcpaths(null));
+              (updateMediaopen(false), updateMediapaths(null));
             }}
             scale="s"
           >
@@ -139,7 +133,7 @@ function MapDisplay() {
           {/* Alignment Button */}
           <calcite-button
             icon-end={
-              imageAlign === "horizontal"
+              align === "Level"
                 ? "distribute-height-evenly"
                 : "distribute-width-evenly"
             }
@@ -147,17 +141,15 @@ function MapDisplay() {
             name="vertical"
             appearance="solid"
             onClick={() => {
-              setImageAlign(
-                imageAlign === "horizontal" ? "vertical" : "horizontal",
-              );
+              setAlign((prev) => (prev === "Level" ? "vertical" : "Level"));
             }}
             scale="s"
             style={{ marginLeft: "5px" }}
           >
-            {imageAlign === "horizontal" ? "Verical" : "Horizontal"}
+            {align === "Level" ? "Verical" : "Level"}
           </calcite-button>
 
-          {/* Image Scales: */}
+          {/* Media Scales: */}
           <calcite-segmented-control
             oncalciteSegmentedControlChange={(event: any) => {
               handleScaleChange(event);
@@ -165,11 +157,11 @@ function MapDisplay() {
             scale="s"
             style={{ marginLeft: "5px" }}
           >
-            {mediaSelectedscale &&
+            {mediascale &&
               image_scales.map((scale: any, index: any) => {
                 return (
                   <calcite-segmented-control-item
-                    {...(mediaSelectedscale === scale ? { checked: true } : {})}
+                    {...(mediascale === scale ? { checked: true } : {})}
                     key={index}
                     value={scale}
                     id={scale}
@@ -181,20 +173,16 @@ function MapDisplay() {
           </calcite-segmented-control>
         </div>
 
-        {/* Image Container: */}
+        {/* Media Container: */}
         <div
           style={{
             margin: "1px",
             zIndex: 1,
             position: "fixed",
-            display: imageAlign === "vertical" ? "block" : "flex",
+            display: align === "vertical" ? "block" : "flex",
           }}
         >
-          {mediatype === "image" ? (
-            <DroneImageComponent />
-          ) : mediatype === "video" ? (
-            <DroneVideoComponent />
-          ) : null}
+          {mediaComponents[mediatype] ?? null}
         </div>
       </div>
 
