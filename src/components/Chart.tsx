@@ -311,9 +311,7 @@ const Chart = memo(() => {
         >
           <calcite-button
             iconEnd="reset"
-            onClick={() =>
-              setResetButtonClicked(resetButtonClicked === false ? true : false)
-            }
+            onClick={() => setResetButtonClicked(!resetButtonClicked)}
           >
             Reset Chart Filter
           </calcite-button>
