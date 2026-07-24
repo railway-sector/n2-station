@@ -27,7 +27,7 @@ import {
 import { queryDefinitionExpression } from "../qQueryExpression";
 import { useQuery } from "@tanstack/react-query";
 import { legendSetter, rootSetter } from "../chartSetter";
-import ChartStackColumnRender, { resetQuerc } from "chart-stack-column-render";
+import ChartStackColumnRender from "chart-stack-column-render";
 import ChartStackColumns from "chart-stack-column";
 
 // Draw chart
@@ -36,15 +36,13 @@ const Chart = memo(() => {
   const arcgisScene = document.querySelector("arcgis-scene") as ArcgisScene;
 
   const [chartPanelwidth, setChartPanelwidth] = useState<any>();
-  const [resetButtonClicked, setResetButtonClicked] = useState<boolean>(false);
+  const [resetLayerview, setResetLayerview] = useState<boolean>(false);
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
   const chartID = "station-bar";
 
   //--- Sublayerview
-  const [sublayerViewFilter, setSublayerViewFilter] = useState<
-    SubLayerView | any
-  >();
+  const [sublayerViewFilter, setSublayerViewFilter] = useState<SubLayerView>();
 
   //-----------------------------------------------------//
   //              Initially Load building layer          //
@@ -84,9 +82,6 @@ const Chart = memo(() => {
   const { data } = useQuery<any>({
     queryKey: [types_q, stations],
     queryFn: async () => {
-      //--- Reset queryc
-      resetQuerc(queryc);
-
       queryDefinitionExpression({
         queryExpression: queryc.queryExpression(),
         featureLayer: sublayersArray,
@@ -213,17 +208,18 @@ const Chart = memo(() => {
   });
 
   useEffect(() => {
-    if (sublayerViewFilter) {
-      sublayerViewFilter.filter = new FeatureFilter({
-        where: undefined,
-      });
+    if (!sublayerViewFilter) return;
 
-      resetAllLayers({
-        layers: sublayersAll,
-        qExpression: `${station_name_f} = ${queryc.qValues[0]}`,
-      });
-    }
-  }, [resetButtonClicked, stations, chartData]);
+    //--- reset layer first before sublayerview filter
+    resetAllLayers({
+      layers: sublayersAll,
+      qExpression: `${station_name_f} = ${queryc.qValues[0]}`,
+    });
+
+    sublayerViewFilter.filter = new FeatureFilter({
+      where: undefined,
+    });
+  }, [resetLayerview]);
 
   const primaryLabelColor = "#9ca3af";
   const valueLabelColor = "#d1d5db";
@@ -311,7 +307,7 @@ const Chart = memo(() => {
         >
           <calcite-button
             iconEnd="reset"
-            onClick={() => setResetButtonClicked(!resetButtonClicked)}
+            onClick={() => setResetLayerview(!resetLayerview)}
           >
             Reset Chart Filter
           </calcite-button>
