@@ -18,8 +18,8 @@ import {
 import { use, useState } from "react";
 import { MyContext } from "../contexts/MyContext";
 import { addLayersToMap, updateMediaInfo } from "../query";
-import DroneImageComponent from "./DroneImageComponent";
-import DroneVideoComponent from "./DroneVideoComponent";
+import DroneImage from "./DroneImage";
+import DroneVideo from "./DroneVideo";
 import { image_scales } from "../uniqueValues";
 import ViewRotateButton from "./ViewRotateButton";
 
@@ -93,13 +93,12 @@ function MapDisplay() {
 
   //--- Helper function to choose image or video Component
   const mediaComponents: Record<string, React.ReactNode> = {
-    image: <DroneImageComponent />,
-    video: <DroneVideoComponent />,
+    image: <DroneImage />,
+    video: <DroneVideo />,
   };
 
   return (
     <arcgis-scene
-      // item-id="5ba14f5a7db34710897da0ce2d46d55f"
       basemap="dark-gray-vector"
       ground="world-elevation"
       viewingMode="local"

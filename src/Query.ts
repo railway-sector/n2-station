@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { dateTable } from "./layers";
-import QueryExpressionLayers from "query-layers-expression";
 
 //---------------------------------------------------------//
 //                 Add Layers to Map                      //
@@ -85,109 +84,6 @@ export async function mediaTimestampToDates(timestamp: any) {
   };
 }
 
-//---------------------------------------------//
-//             Stacked Column chart            //
-//---------------------------------------------//
-
-//--- Chart Data Generation helper function
-// `pieChartData` function helps to assign parameter names to class `ChartPieSeries`
-interface StackColumnChartDataType {
-  colchart: any;
-  qChart: any;
-  categoryTypes: any;
-  categoryTypeField: any;
-  layers: any;
-  statusField: any;
-  statusState: any;
-}
-
-export async function stackColumnChartData({
-  colchart,
-  qChart,
-  categoryTypes,
-  categoryTypeField,
-  layers,
-  statusField,
-  statusState,
-}: StackColumnChartDataType) {
-  Object.assign(colchart, {
-    qChart: qChart.queryExpression(),
-    categoryTypes,
-    categoryTypeField,
-    layers,
-    statusField,
-    statusState,
-  });
-  return await colchart.chartDataStackColumns();
-}
-
-type StatusTypeNamesType =
-  | "To be Constructed"
-  | "Under Construction"
-  | "delayed"
-  | "Completed"
-  | "Exceeded"
-  | "Normal";
-
-type StatusStateType =
-  | "comp"
-  | "incomp"
-  | "ongoing"
-  | "delayed"
-  | "exceeded"
-  | "normal";
-
-interface ChartStackColumnRender {
-  render: any;
-  revit: boolean;
-  layers: any;
-  root: any;
-  chart: any;
-  data: any;
-  buildingLayer?: any;
-  qChart: any;
-  chartCategoryTypes: any;
-  chartCategoryTypeField: any;
-  statusTypename: StatusTypeNamesType[];
-  statusStatename: StatusStateType[];
-  statusArray: any;
-  statusField: any;
-  seriesStatusColor: any;
-  strokeColor: any;
-  strokeWidth: any;
-  view: any;
-  setLayerViewFilter?: any;
-  new_chartIconSize: any;
-  new_axisFontSize: any;
-  chartIconPositionX?: any;
-  chartPaddingRightIconLabel: any;
-  legend: any;
-  updateChartPanelwidth: any;
-}
-
-export async function stackColumnChartRender({
-  render,
-  ...props
-}: ChartStackColumnRender) {
-  Object.assign(render, props);
-  return await render.chartRendererColumn();
-}
-
-//--- Returns query expression
-export const makeQuery = (
-  qValues: string[],
-  qFields: string[],
-  qExpression?: string,
-  q2Expression?: string,
-) => {
-  const q = new QueryExpressionLayers();
-  q.qValues = qValues;
-  q.qFields = qFields;
-  if (qExpression) q.qExpression = qExpression;
-  if (q2Expression) q.q2Expression = q2Expression;
-  return q;
-};
-
 //---------------------------------------------------------//
 //                Date Function                           //
 //---------------------------------------------------------//
@@ -235,9 +131,7 @@ export function thousands_separators(num: any) {
 export function zoomToLayer(layer: any, view: any) {
   return layer.queryExtent().then((response: any) => {
     view?.goTo(response.extent, { speedFactor: 2 }).catch((error: any) => {
-      if (error.name !== "AbortError") {
-        console.error(error);
-      }
+      if (error.name !== "AbortError") console.error(error);
     });
   });
 }

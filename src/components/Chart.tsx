@@ -1,20 +1,11 @@
 /* eslint-disable react-hooks/immutability */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { memo, use, useEffect, useRef, useState } from "react";
-import { stColumnLayer, sublayersAll, buildingLayer } from "../layers";
-import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
+import { sublayersAll, buildingLayer, stationLayer } from "../layers";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
-import {
-  makeQuery,
-  resetAllLayers,
-  stackColumnChartData,
-  stackColumnChartRender,
-  thousands_separators,
-  zoomToLayer,
-} from "../query";
+import { resetAllLayers, thousands_separators, zoomToLayer } from "../query";
 import "@esri/calcite-components/components/calcite-button";
-import SubLayerView from "@arcgis/core/views/layers/BuildingComponentSublayerView";
 import { ArcgisScene } from "@arcgis/map-components/dist/components/arcgis-scene";
 import { MyContext } from "../contexts/MyContext";
 import {
@@ -29,6 +20,48 @@ import { useQuery } from "@tanstack/react-query";
 import { legendSetter, rootSetter } from "../chartSetter";
 import ChartStackColumnRender from "chart-stack-column-render";
 import ChartStackColumns from "chart-stack-column";
+import QueryExpressionLayers from "query-layers-expression";
+
+//------------------------------//
+//        useStationData        //
+//------------------------------//
+function useStationData(
+  stations: string,
+  query: any,
+  sublayersArray: any,
+  arcgisScene: any,
+) {
+  return useQuery<any>({
+    queryKey: [stations, stationLayer],
+    queryFn: async () => {
+      queryDefinitionExpression({
+        queryExpression: query.queryExpression(),
+        featureLayer: sublayersArray,
+      });
+
+      const chartData = await new ChartStackColumns({
+        where: query,
+        categoryTypes: types_q,
+        categoryTypeField: undefined,
+        layers: sublayersArray,
+        statusField: status_f,
+        statusState: [1, 2, 3, 4],
+      }).chartDataStackColumns();
+
+      stationLayer.definitionExpression = `Station = '${stations}'`;
+      zoomToLayer(stationLayer, arcgisScene);
+
+      return {
+        chartData: chartData[0] || [],
+        totaln: chartData[1] || 0,
+        perc: chartData[2] || 0,
+      };
+    },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
 
 // Draw chart
 const Chart = memo(() => {
@@ -40,9 +73,6 @@ const Chart = memo(() => {
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
   const chartID = "station-bar";
-
-  //--- Sublayerview
-  const [sublayerViewFilter, setSublayerViewFilter] = useState<SubLayerView>();
 
   //-----------------------------------------------------//
   //              Initially Load building layer          //
@@ -66,50 +96,18 @@ const Chart = memo(() => {
     arcgisBuildingExplorer.layers = [buildingLayer];
   }, [buildingLayerLoaded, buildingLayer]);
 
-  //-----------------------------------------------------//
-  //              Define Query expression                //
-  //-----------------------------------------------------//
-  //--- Common qValues and qFields for QueryExpressionLayers class
-  const qV = [station_names_q.find((f: any) => f.name === stations)?.value];
-  const qF = [station_name_f];
-  const queryc = makeQuery(qV, qF);
+  //--- Query expression
+  const q1 = new QueryExpressionLayers({
+    qFields: [station_name_f],
+    qValues: [station_names_q.find((f: any) => f.name === stations)?.value],
+  });
 
   //-----------------------------------------------------//
   //              Generate Chart Data                    //
   //-----------------------------------------------------//
   const sublayersArray = sublayersAll.map((item: any) => item.layer);
 
-  const { data } = useQuery<any>({
-    queryKey: [types_q, stations],
-    queryFn: async () => {
-      queryDefinitionExpression({
-        queryExpression: queryc.queryExpression(),
-        featureLayer: sublayersArray,
-      });
-
-      const chartData = await stackColumnChartData({
-        colchart: new ChartStackColumns(),
-        qChart: queryc,
-        categoryTypes: types_q,
-        categoryTypeField: undefined,
-        layers: sublayersArray,
-        statusField: status_f,
-        statusState: [1, 2, 3, 4],
-      });
-
-      zoomToLayer(stColumnLayer, arcgisScene);
-
-      return {
-        chartData: chartData[0] || [],
-        totaln: chartData[1] || 0,
-        perc: chartData[2] || 0,
-      };
-    },
-    // staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
+  const { data } = useStationData(stations, q1, sublayersArray, arcgisScene);
   const chartData = data?.chartData || [];
   const totaln = data?.totaln || 0;
   const perc_comp = data?.perc || 0;
@@ -138,6 +136,7 @@ const Chart = memo(() => {
 
   useEffect(() => {
     const root = rootSetter({ chartID: chartID });
+    root.setThemes([]);
 
     const chart = root.container.children.push(
       am5xy.XYChart.new(root, {
@@ -173,15 +172,14 @@ const Chart = memo(() => {
     const chartIconPositionX = 0;
 
     //-- Chart render
-    stackColumnChartRender({
-      render: new ChartStackColumnRender(),
+    new ChartStackColumnRender({
       revit: true,
       layers: sublayersAll,
       root,
       chart,
       data: chartData,
       buildingLayer: buildingLayer,
-      qChart: queryc,
+      where: q1,
       chartCategoryTypes: types_q,
       chartCategoryTypeField: undefined,
       statusTypename: ["Completed", "To be Constructed", "Under Construction"], //["Completed", "To be Constructed", "Under Construction"],
@@ -192,33 +190,29 @@ const Chart = memo(() => {
       strokeColor: chartBorderLineColor,
       strokeWidth: chartBorderLineWidth,
       view: arcgisScene?.view,
-      setLayerViewFilter: setSublayerViewFilter,
       new_chartIconSize,
       new_axisFontSize,
       chartIconPositionX,
       chartPaddingRightIconLabel,
       legend,
       updateChartPanelwidth: setChartPanelwidth,
-    });
-    chart.appear(1000, 100);
+    }).chartRendererColumn();
 
     return () => {
       root.dispose();
     };
-  });
+  }, [chartData, stations]);
 
   useEffect(() => {
-    if (!sublayerViewFilter) return;
+    // if (!sublayerViewFilter) return;
 
     //--- reset layer first before sublayerview filter
     resetAllLayers({
       layers: sublayersAll,
-      qExpression: `${station_name_f} = ${queryc.qValues[0]}`,
+      qExpression: `${station_name_f} = ${q1.qValues?.[0]}`,
     });
 
-    sublayerViewFilter.filter = new FeatureFilter({
-      where: undefined,
-    });
+    // sublayerViewFilter.filter = null;
   }, [resetLayerview]);
 
   const primaryLabelColor = "#9ca3af";
