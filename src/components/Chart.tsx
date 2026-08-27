@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/immutability */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { memo, use, useEffect, useRef, useState } from "react";
+import { memo, use, useEffect, useMemo, useRef, useState } from "react";
 import { sublayersAll, buildingLayer, stationLayer } from "../layers";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
@@ -21,6 +21,35 @@ import { legendSetter, rootSetter } from "../chartSetter";
 import ChartStackColumnRender from "chart-stack-column-render";
 import ChartStackColumns from "chart-stack-column";
 import QueryExpressionLayers from "query-layers-expression";
+
+const CHART_ID = "station-bar";
+
+// Static layout constants (do not depend on props/state, so hoisted out of the component)
+const CHART_MARGINS = {
+  marginTop: 0,
+  marginLeft: 0,
+  marginRight: 0,
+  marginBottom: 0,
+};
+const CHART_PADDING = {
+  paddingTop: 10,
+  paddingLeft: 5,
+  paddingRight: 5,
+  paddingBottom: 0,
+};
+const CHART_ICON_POSITION_X = 0;
+const CHART_PADDING_RIGHT_ICON_LABEL = 10;
+const CHART_BORDER_LINE_COLOR = "#00c5ff";
+const CHART_BORDER_LINE_WIDTH = 0.4;
+const STATUS_TYPE_NAMES: any = [
+  "Completed",
+  "To be Constructed",
+  "Under Construction",
+];
+const STATUS_STATE_NAMES: any = ["comp", "incomp", "ongoing"];
+
+const labelColor = "#9ca3af";
+const valueColor = "#d1d5db";
 
 //------------------------------//
 //        useStationData        //
@@ -72,35 +101,42 @@ const Chart = memo(() => {
   const [resetLayerview, setResetLayerview] = useState<boolean>(false);
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
-  const chartID = "station-bar";
 
   //-----------------------------------------------------//
   //              Initially Load building layer          //
   //-----------------------------------------------------//
-  // else no chart
-  const [buildingLayerLoaded, setLotLayerLoaded] = useState<any>(null);
-  const arcgisBuildingExplorer = document.querySelector(
-    "arcgis-building-explorer",
+  const [buildingLayerLoaded, setBuildingLayerLoaded] = useState<string | null>(
+    null,
   );
 
   //--- Wait until building layer is loaded
   useEffect(() => {
     buildingLayer.load().then(() => {
-      setLotLayerLoaded(buildingLayer.loadStatus);
+      setBuildingLayerLoaded(buildingLayer.loadStatus);
     });
   }, []);
 
   //--- Building Explorer accepts building layer when ready
   useEffect(() => {
-    if (buildingLayerLoaded !== "loaded" || !arcgisBuildingExplorer) return;
+    if (buildingLayerLoaded !== "loaded") return;
+    const arcgisBuildingExplorer = document.querySelector(
+      "arcgis-building-explorer",
+    ) as any;
+    if (!arcgisBuildingExplorer) return;
     arcgisBuildingExplorer.layers = [buildingLayer];
-  }, [buildingLayerLoaded, buildingLayer]);
+  }, [buildingLayerLoaded]);
 
   //--- Query expression
-  const q1 = new QueryExpressionLayers({
-    qFields: [station_name_f],
-    qValues: [station_names_q.find((f: any) => f.name === stations)?.value],
-  });
+  // Memoized so React Query's key comparison and the render effects below
+  // don't see a "new" object on every render.
+  const q1 = useMemo(
+    () =>
+      new QueryExpressionLayers({
+        qFields: [station_name_f],
+        qValues: [station_names_q.find((f: any) => f.name === stations)?.value],
+      }),
+    [stations],
+  );
 
   //-----------------------------------------------------//
   //              Generate Chart Data                    //
@@ -112,30 +148,14 @@ const Chart = memo(() => {
   const totaln = data?.totaln || 0;
   const perc_comp = data?.perc || 0;
 
-  // Define parameters
-  const marginTop = 0;
-  const marginLeft = 0;
-  const marginRight = 0;
-  const marginBottom = 0;
-  const paddingTop = 10;
-  const paddingLeft = 5;
-  const paddingRight = 5;
-  const paddingBottom = 0;
-  const chartBorderLineColor = "#00c5ff";
-  const chartBorderLineWidth = 0.4;
-  const chartPaddingRightIconLabel = 10;
-
-  //-------------------------------------//
-  //    Responsive Chart parameters      //
-  //-------------------------------------//
-  const new_fontSize = chartPanelwidth / 20;
-  const new_valueSize = new_fontSize * 1.55;
-  const new_chartIconSize = chartPanelwidth * 0.07;
-  const new_axisFontSize = chartPanelwidth * 0.036;
-  const new_imageSize = chartPanelwidth * 0.035;
+  const fontSize = chartPanelwidth / 20;
+  const valueSize = fontSize * 1.55;
+  const chartIconSize = chartPanelwidth * 0.07;
+  const axisFontSize = chartPanelwidth * 0.036;
+  const imageSize = chartPanelwidth * 0.035;
 
   useEffect(() => {
-    const root = rootSetter({ chartID: chartID });
+    const root = rootSetter({ chartID: CHART_ID });
     root.setThemes([]);
 
     const chart = root.container.children.push(
@@ -143,14 +163,8 @@ const Chart = memo(() => {
         panX: false,
         panY: false,
         layout: root.verticalLayout,
-        marginTop: marginTop,
-        marginLeft: marginLeft,
-        marginRight: marginRight,
-        marginBottom: marginBottom,
-        paddingTop: paddingTop,
-        paddingLeft: paddingLeft,
-        paddingRight: paddingRight,
-        paddingBottom: paddingBottom,
+        ...CHART_MARGINS,
+        ...CHART_PADDING,
         scale: 1,
         height: am5.percent(100),
       }),
@@ -169,8 +183,6 @@ const Chart = memo(() => {
     });
     legendRef.current = legend;
 
-    const chartIconPositionX = 0;
-
     //-- Chart render
     new ChartStackColumnRender({
       revit: true,
@@ -182,18 +194,18 @@ const Chart = memo(() => {
       where: q1,
       chartCategoryTypes: types_q,
       chartCategoryTypeField: undefined,
-      statusTypename: ["Completed", "To be Constructed", "Under Construction"], //["Completed", "To be Constructed", "Under Construction"],
-      statusStatename: ["comp", "incomp", "ongoing"], //["comp", "incomp", "ongoing"],
+      statusTypename: STATUS_TYPE_NAMES,
+      statusStatename: STATUS_STATE_NAMES,
       statusArray: status_q,
       statusField: status_f,
       seriesStatusColor: status_q.map((c: any) => c.color),
-      strokeColor: chartBorderLineColor,
-      strokeWidth: chartBorderLineWidth,
+      strokeColor: CHART_BORDER_LINE_COLOR,
+      strokeWidth: CHART_BORDER_LINE_WIDTH,
       view: arcgisScene?.view,
-      new_chartIconSize,
-      new_axisFontSize,
-      chartIconPositionX,
-      chartPaddingRightIconLabel,
+      new_chartIconSize: chartIconSize,
+      new_axisFontSize: axisFontSize,
+      chartIconPositionX: CHART_ICON_POSITION_X,
+      chartPaddingRightIconLabel: CHART_PADDING_RIGHT_ICON_LABEL,
       legend,
       updateChartPanelwidth: setChartPanelwidth,
     }).chartRendererColumn();
@@ -201,22 +213,18 @@ const Chart = memo(() => {
     return () => {
       root.dispose();
     };
-  }, [chartData, stations]);
+    // axisFontSize/chartIconSize derive from chartPanelwidth, which is itself
+    // set by the renderer (updateChartPanelwidth) — including it here would
+    // cause an infinite re-render loop, so it's deliberately left out.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartData, stations, q1]);
 
   useEffect(() => {
-    // if (!sublayerViewFilter) return;
-
-    //--- reset layer first before sublayerview filter
     resetAllLayers({
       layers: sublayersAll,
       qExpression: `${station_name_f} = ${q1.qValues?.[0]}`,
     });
-
-    // sublayerViewFilter.filter = null;
-  }, [resetLayerview]);
-
-  const primaryLabelColor = "#9ca3af";
-  const valueLabelColor = "#d1d5db";
+  }, [resetLayerview, q1]);
 
   return (
     <>
@@ -228,6 +236,7 @@ const Chart = memo(() => {
           borderLeftWidth: 5,
           borderBottomWidth: 5,
           borderColor: "#555555",
+          width: "33vw",
         }}
       >
         <div
@@ -243,15 +252,15 @@ const Chart = memo(() => {
           <img
             src="https://EijiGorilla.github.io/Symbols/Station_Structures_icon.svg"
             alt="Land Logo"
-            height={`${new_imageSize}%`}
-            width={`${new_imageSize}%`}
+            height={`${imageSize}%`}
+            width={`${imageSize}%`}
             style={{ paddingTop: "20px", paddingLeft: "15px" }}
           />
           <dl style={{ alignItems: "center" }}>
             <dt
               style={{
-                color: primaryLabelColor,
-                fontSize: `${new_fontSize}px`,
+                color: labelColor,
+                fontSize: `${fontSize}px`,
                 marginRight: "35px",
               }}
             >
@@ -259,8 +268,8 @@ const Chart = memo(() => {
             </dt>
             <dd
               style={{
-                color: valueLabelColor,
-                fontSize: `${new_valueSize}px`,
+                color: valueColor,
+                fontSize: `${valueSize}px`,
                 fontWeight: "bold",
                 fontFamily: "calibri",
                 lineHeight: "1.2",
@@ -271,8 +280,8 @@ const Chart = memo(() => {
             </dd>
             <div
               style={{
-                color: valueLabelColor,
-                fontSize: `${new_valueSize}*0.5px`,
+                color: valueColor,
+                fontSize: `${valueSize}*0.5px`,
                 fontFamily: "calibri",
                 lineHeight: "1.2",
               }}
@@ -282,7 +291,7 @@ const Chart = memo(() => {
           </dl>
         </div>
         <div
-          id={chartID}
+          id={CHART_ID}
           style={{
             height: "65.5vh",
             backgroundColor: "rgb(0,0,0,0)",

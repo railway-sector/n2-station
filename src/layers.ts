@@ -84,7 +84,7 @@ export const dateTable = new FeatureLayer({
 export const drone_video_point_layer = new FeatureLayer({
   portalItem: portalItems("6adfe17839d1465593ac3120749b3273"),
   layerId: 2,
-  definitionExpression: "Query = 'depot' OR Query = 'station'",
+  // definitionExpression: "Query = 'depot' OR Query = 'station'",
   title: "Drone Video",
   outFields: ["*"],
   labelingInfo: [label_video],
@@ -97,7 +97,7 @@ export const drone_image_point_layer = new FeatureLayer({
   portalItem: portalItems("6adfe17839d1465593ac3120749b3273"),
   layerId: 1,
   elevationInfo: { mode: "relative-to-scene" },
-  definitionExpression: "Query = 'depot' OR Query = 'station'",
+  // definitionExpression: "Query = 'depot' OR Query = 'station'",
   title: "Drone Image",
   outFields: ["*"],
   labelingInfo: [label_image],
