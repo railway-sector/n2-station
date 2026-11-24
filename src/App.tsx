@@ -8,7 +8,6 @@ import "@esri/calcite-components/components/calcite-shell";
 import MapDisplay from "./components/MapDisplay";
 import ActionPanel from "./components/ActionPanel";
 import Header from "./components/Header";
-import UndergroundSwitch from "./components/UndergroundSwitch";
 import { MyContext } from "./contexts/MyContext";
 import { image_scales } from "./uniqueValues";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -79,7 +78,6 @@ export function App(): React.JSX.Element {
             >
               <QueryClientProvider client={queryClient}>
                 <ActionPanel />
-                <UndergroundSwitch />
                 <MapDisplay />
                 <Chart />
                 <Header />

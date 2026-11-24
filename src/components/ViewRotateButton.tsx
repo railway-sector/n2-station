@@ -47,14 +47,14 @@ function ViewRotateButton() {
   });
 
   return (
-    <>
+    <div>
       <calcite-button iconEnd="play" id="play"></calcite-button>
       <calcite-button
         iconEnd="pause"
         id="pause"
         style={{ display: "none" }}
       ></calcite-button>
-    </>
+    </div>
   );
 }
 

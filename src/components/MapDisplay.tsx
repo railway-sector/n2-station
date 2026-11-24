@@ -21,6 +21,7 @@ import { addLayersToMap, updateMediaInfo } from "../query";
 import DroneImage from "./DroneImage";
 import DroneVideo from "./DroneVideo";
 import { image_scales } from "../uniqueValues";
+import UndergroundSwitch from "./UndergroundSwitch";
 import ViewRotateButton from "./ViewRotateButton";
 
 function MapDisplay() {
@@ -185,9 +186,13 @@ function MapDisplay() {
         </div>
       </div>
 
-      <arcgis-compass slot="bottom-right"></arcgis-compass>
+      <arcgis-compass
+        slot="top-right"
+        style={{ marginTop: 50 }}
+      ></arcgis-compass>
       <arcgis-zoom slot="bottom-right"></arcgis-zoom>
       <ViewRotateButton />
+      <UndergroundSwitch />
     </arcgis-scene>
   );
 }
